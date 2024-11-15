@@ -1,26 +1,26 @@
 import { gql } from "@apollo/client";
 
 export const GET_USER_REPOSITORIES = gql`
-query SearchRepositories($query: String!, $first: Int!, $after: String) {
-  search(query: $query, type: REPOSITORY, first: $first, after: $after) {
-    edges {
-      node {
-        ... on Repository {
-          name
-          description
-          primaryLanguage {
+  query GetUserRepositories($username: String!, $first: Int!, $after: String) {
+    user(login: $username) {
+      repositories(first: $first, after: $after) {
+        edges {
+          node {
             name
+            description
+            primaryLanguage {
+              name
+            }
           }
         }
+        pageInfo {
+          endCursor
+          hasNextPage
+        }
+        totalCount
       }
     }
-    pageInfo {
-      endCursor
-      hasNextPage
-    }
-    repositoryCount
   }
-}
 `;
 
 export const GET_USERNAMES = gql`
@@ -35,29 +35,29 @@ export const GET_USERNAMES = gql`
   }
 `;
 
-// export const GET_REPOSITORIES_FILTERED = gql`
-//   query SearchRepositories(
-//     $query: String!
-//     $first: Int!
-//     $after: String
-//   ) {
-//     search(query: $query, type: REPOSITORY, first: $first, after: $after) {
-//       repositoryCount
-//       edges {
-//         node {
-//           ... on Repository {
-//             name
-//             description
-//             primaryLanguage {
-//               name
-//             }
-//           }
-//         }
-//       }
-//       pageInfo {
-//         endCursor
-//       hasNextPage
-//     }
-//     }
-//   }
-// `;
+export const GET_REPOSITORIES_FILTERED = gql`
+  query SearchRepositories(
+    $query: String!
+    $first: Int!
+    $after: String
+  ) {
+    search(query: $query, type: REPOSITORY, first: $first, after: $after) {
+      repositoryCount
+      edges {
+        node {
+          ... on Repository {
+            name
+            description
+            primaryLanguage {
+              name
+            }
+          }
+        }
+      }
+      pageInfo {
+        endCursor
+      hasNextPage
+    }
+    }
+  }
+`;
