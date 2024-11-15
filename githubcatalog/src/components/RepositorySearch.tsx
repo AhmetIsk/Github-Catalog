@@ -1,5 +1,3 @@
-// src/components/RepositorySearch.tsx
-
 import React, { useState } from "react";
 import { useQuery } from "@apollo/client";
 import { GET_USER_REPOSITORIES } from "../graphql/queries";
@@ -15,25 +13,25 @@ const RepositorySearch: React.FC<RepositorySearchProps> = () => {
   const [languageFilter, setLanguageFilter] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [cursor, setCursor] = useState<string | null>(null); // To store the cursor for pagination
+  const [cursor, setCursor] = useState<string | null>(null);
 
   const { data, loading, error, refetch } = useQuery(GET_USER_REPOSITORIES, {
     variables: { username, first: rowsPerPage, after: cursor },
-    skip: !username, // Skip query until username is entered
+    skip: !username,
   });
 
   const handleSearch = () => {
-    setPage(0); // Reset page when a new search is made
-    setCursor(null); // Reset cursor on new search
-    refetch({ username, first: rowsPerPage, after: null }); // Refetch data for the new username
+    setPage(0);
+    setCursor(null);
+    refetch({ username, first: rowsPerPage, after: null });
   };
 
   const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
     const newCursor = data?.user.repositories.pageInfo.endCursor;
     if (newCursor) {
-      setCursor(newCursor); // Update cursor when page changes
-      refetch({ username, first: rowsPerPage, after: newCursor }); // Refetch data with new cursor
+      setCursor(newCursor);
+      refetch({ username, first: rowsPerPage, after: newCursor });
     }
   };
 
@@ -41,8 +39,8 @@ const RepositorySearch: React.FC<RepositorySearchProps> = () => {
     const newRowsPerPage = parseInt(event.target.value, 10);
     setRowsPerPage(newRowsPerPage);
     setPage(0); // Reset page to 0 when rows per page is changed
-    setCursor(null); // Reset cursor when changing rows per page
-    refetch({ username, first: newRowsPerPage, after: null }); // Refetch with new page size
+    setCursor(null);
+    refetch({ username, first: newRowsPerPage, after: null });
   };
 
   // Directly using the data from the GraphQL query
