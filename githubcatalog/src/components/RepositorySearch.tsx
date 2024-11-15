@@ -1,119 +1,166 @@
-import React, { useState } from "react";
-import { useQuery } from "@apollo/client";
-import { GET_USER_REPOSITORIES } from "../graphql/queries";
-import GithubTextField from "../stories/GithubTextField/GithubTextField";
-import GithubButton from "../stories/GithubButton/GithubButton";
-import { CircularProgress, Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Paper } from "@mui/material";
+import React, { useState, useEffect } from 'react';
+import { Typography, Container, CircularProgress, TextField, Autocomplete, Box, Stack, MenuItem } from '@mui/material';
+import { useLazyQuery } from '@apollo/client';
+import { GET_REPOSITORIES_FILTERED, GET_USER_REPOSITORIES, GET_USERNAMES } from '../graphql/queries';
+import RepositoryTable from './RepositoryTable';
+import GithubButton from '../stories/GithubButton/GithubButton';
 
-interface RepositorySearchProps { }
+const buildSearchQuery = (username: string, name?: string, language?: string) => {
+  let query = `user:${username}`;
+  if (name) query += ` ${name}`;
+  if (language) query += ` language:${language}`;
+  return query;
+};
 
-const RepositorySearch: React.FC<RepositorySearchProps> = () => {
-  const [username, setUsername] = useState("");
-  const [filter, setFilter] = useState("");
-  const [languageFilter, setLanguageFilter] = useState("");
+const RepositorySearch = () => {
+  const [selectedUsername, setSelectedUsername] = useState<string | null>(null);
+  const [username, setUsername] = useState<string>('');
+  const [repositories, setRepositories] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [users, setUsers] = useState<any[]>([]);
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(5);
-  const [cursor, setCursor] = useState<string | null>(null);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [endCursor, setEndCursor] = useState<string | null>(null);
+  const [languageFilter, setLanguageFilter] = useState<string>('');
+  const [nameFilter, setNameFilter] = useState<string>('');
+  const [languages, setLanguages] = useState<string[]>([]);
 
-  const { data, loading, error, refetch } = useQuery(GET_USER_REPOSITORIES, {
-    variables: { username, first: rowsPerPage, after: cursor },
-    skip: !username,
+  const [fetchRepositories, { data, loading: repoLoading, error }] = useLazyQuery(GET_USER_REPOSITORIES, {
+    onCompleted: (data) => {
+      const edges = data?.user?.repositories?.edges || [];
+      setRepositories(edges);
+      setEndCursor(data?.user?.repositories?.pageInfo?.endCursor || null);
+      setLoading(false);
+
+      // Populate unique programming languages
+      const langs = edges
+        .map((edge: any) => edge.node.primaryLanguage?.name)
+        .filter((lang: string | null) => lang);
+      setLanguages(Array.from(new Set(langs)));
+    },
   });
 
-  const handleSearch = () => {
+  const [fetchFilteredRepositories, { data: filteredData, loading: filteredLoading }] = useLazyQuery(GET_REPOSITORIES_FILTERED, {
+    onCompleted: (data) => {
+      setRepositories(data.search.edges);
+      setEndCursor(data.search.pageInfo.endCursor);
+      setLoading(false);
+    },
+  });
+
+  const [fetchUsers, { data: usersData, loading: usersLoading }] = useLazyQuery(GET_USERNAMES, {
+    onCompleted: (data) => setUsers(data.search.nodes),
+  });
+
+  const handleUsernameSelect = (username: string) => {
+    setSelectedUsername(username);
     setPage(0);
-    setCursor(null);
-    refetch({ username, first: rowsPerPage, after: null });
+    setRepositories([]);
+    setLoading(true);
+    fetchRepositories({ variables: { username, first: rowsPerPage, after: null } });
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-    const newCursor = data?.user.repositories.pageInfo.endCursor;
-    if (newCursor) {
-      setCursor(newCursor);
-      refetch({ username, first: rowsPerPage, after: newCursor });
+  const handleInputChange = (event: any, value: string) => {
+    setUsername(value);
+    if (value.length > 2) {
+      fetchUsers({ variables: { query: value } });
+    } else {
+      setUsers([]);
     }
   };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newRowsPerPage = parseInt(event.target.value, 10);
-    setRowsPerPage(newRowsPerPage);
-    setPage(0); // Reset page to 0 when rows per page is changed
-    setCursor(null);
-    refetch({ username, first: newRowsPerPage, after: null });
+  const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+    setPage(newPage);
+    const cursor = newPage > page ? endCursor : null;
+    fetchRepositories({ variables: { username: selectedUsername, first: rowsPerPage, after: cursor } });
   };
 
-  // Directly using the data from the GraphQL query
-  const repositories = data?.user.repositories.edges || [];
+  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const newRowsPerPage = parseInt(event.target.value, 10);
+    setRowsPerPage(newRowsPerPage);
+    setPage(0);
+    fetchRepositories({ variables: { username: selectedUsername, first: newRowsPerPage, after: null } });
+  };
 
-  // Apply filtering
-  const filteredRepositories = repositories.filter((repo: any) =>
-    repo.node.name.toLowerCase().includes(filter.toLowerCase()) &&
-    (languageFilter ? repo.node.primaryLanguage?.name === languageFilter : true)
-  );
+  const handleFilterChange = () => {
+    if (!selectedUsername) return;
+    setLoading(true);
+
+    const query = buildSearchQuery(
+      selectedUsername,
+      nameFilter || undefined,
+      languageFilter || undefined
+    );
+
+    fetchFilteredRepositories({
+      variables: {
+        query,
+        first: 10,
+        after: null,
+      },
+    });
+  };
+
 
   return (
-    <Box sx={{ padding: 3 }}>
-      <GithubTextField
-        label="GitHub Username"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-        fullWidth
-      />
-      <GithubButton onClick={handleSearch}>Search Repositories</GithubButton>
-
-      <GithubTextField
-        label="Filter by Repository Name"
-        value={filter}
-        onChange={(e) => setFilter(e.target.value)}
-        fullWidth
-      />
-      <GithubTextField
-        label="Filter by Language"
-        value={languageFilter}
-        onChange={(e) => setLanguageFilter(e.target.value)}
-        fullWidth
-      />
-
-      {loading && <CircularProgress />}
-
-      {error && <Box sx={{ color: "red" }}>Error fetching repositories</Box>}
-
-      {filteredRepositories.length > 0 ? (
-        <TableContainer component={Paper}>
-          <Table sx={{ minWidth: 650 }} aria-label="repositories table">
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Language</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredRepositories.map((repo: any) => (
-                <TableRow key={repo.node.name}>
-                  <TableCell>{repo.node.name}</TableCell>
-                  <TableCell>{repo.node.description}</TableCell>
-                  <TableCell>{repo.node.primaryLanguage?.name}</TableCell>
-                </TableRow>
+    <Container>
+      <Stack spacing={2}>
+        <Autocomplete
+          freeSolo
+          options={users}
+          getOptionLabel={(option: any) => option.login}
+          onInputChange={handleInputChange}
+          onChange={(event, newValue) => handleUsernameSelect(newValue?.login || '')}
+          loading={usersLoading}
+          renderInput={(params) => <TextField {...params} label="Search for Username" />}
+          disableClearable
+        />
+        {selectedUsername && (
+          <>
+            <TextField
+              label="Filter by Repository Name"
+              variant="outlined"
+              fullWidth
+              value={nameFilter}
+              onChange={(e) => setNameFilter(e.target.value)}
+            />
+            <TextField
+              select
+              label="Filter by Programming Language"
+              variant="outlined"
+              fullWidth
+              value={languageFilter}
+              onChange={(e) => setLanguageFilter(e.target.value)}
+            >
+              <MenuItem value="">All Languages</MenuItem>
+              {languages.map((lang) => (
+                <MenuItem key={lang} value={lang}>
+                  {lang}
+                </MenuItem>
               ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      ) : (
-        <Box>No repositories found.</Box>
-      )}
-
-      <TablePagination
-        rowsPerPageOptions={[5, 10, 25]}
-        component="div"
-        count={data?.user.repositories.totalCount || 0}
-        rowsPerPage={rowsPerPage}
-        page={page}
-        onPageChange={handleChangePage}
-        onRowsPerPageChange={handleChangeRowsPerPage}
-      />
-    </Box>
+            </TextField>
+            <GithubButton onClick={handleFilterChange}>Apply Filters</GithubButton>
+          </>
+        )}
+        {loading ? (
+          <Box display="flex" justifyContent="center">
+            <CircularProgress />
+          </Box>
+        ) : error ? (
+          <Typography color="error">{`Error: ${error.message}`}</Typography>
+        ) : (
+              <RepositoryTable
+                repositories={repositories}
+                loading={repoLoading}
+                totalCount={data?.user?.repositories?.totalCount || 0}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                handleChangePage={handleChangePage}
+                handleChangeRowsPerPage={handleChangeRowsPerPage}
+              />
+        )}
+      </Stack>
+    </Container>
   );
 };
 
