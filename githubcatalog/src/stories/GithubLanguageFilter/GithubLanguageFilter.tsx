@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Autocomplete, TextField, Chip, Box, Typography, Stack, ListItem } from '@mui/material';
 import { FormattedMessage } from 'react-intl';
 
 interface GithubLanguageFilterProps {
   onChange: (languages: string[]) => void;
-  selectedLanguages: string[];
 }
 
 const languages = [
@@ -18,12 +17,12 @@ const languages = [
 ];
 
 const GithubLanguageFilter: React.FC<GithubLanguageFilterProps> = ({
-  onChange,
-  selectedLanguages,
+  onChange
 }) => {
-
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const handleLanguagesChange = (event: any, newValue: string[]) => {
-    onChange(newValue); // Notify parent component with selected languages
+    setSelectedLanguages(newValue);
+    onChange(newValue);
   };
 
   return (

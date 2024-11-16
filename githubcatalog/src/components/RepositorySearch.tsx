@@ -127,7 +127,6 @@ const RepositorySearch = () => {
             />
             <GithubLanguageFilter
               onChange={handleLanguageFilterChange}
-              selectedLanguages={languageFilter}
             />
           </>
         )}
