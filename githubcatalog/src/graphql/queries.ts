@@ -56,8 +56,8 @@ export const GET_REPOSITORIES_FILTERED = gql`
       }
       pageInfo {
         endCursor
-      hasNextPage
-    }
+        hasNextPage
+      }
     }
   }
 `;

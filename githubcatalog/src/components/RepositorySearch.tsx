@@ -3,12 +3,21 @@ import { Typography, Container, CircularProgress, TextField, Autocomplete, Box, 
 import { useLazyQuery } from '@apollo/client';
 import { GET_REPOSITORIES_FILTERED, GET_USER_REPOSITORIES, GET_USERNAMES } from '../graphql/queries';
 import RepositoryTable from './RepositoryTable';
-import GithubButton from '../stories/GithubButton/GithubButton';
+import GithubLanguageFilter from '../stories/GithubLanguageFilter/GithubLanguageFilter';
+import useDebounce from '../hooks/useDebounce';
 
-const buildSearchQuery = (username: string, name?: string, language?: string) => {
+const buildSearchQuery = (username: string, nameFilter?: string, languageFilter?: string[]) => {
   let query = `user:${username}`;
-  if (name) query += ` ${name}`;
-  if (language) query += ` language:${language}`;
+
+  if (nameFilter) {
+    query += ` ${nameFilter}`;
+  }
+
+  if (languageFilter && languageFilter.length > 0) {
+    const languagesQuery = languageFilter.map(lang => `language:${lang}`).join(' ');
+    query += ` ${languagesQuery}`;
+  }
+
   return query;
 };
 
@@ -16,27 +25,19 @@ const RepositorySearch = () => {
   const [selectedUsername, setSelectedUsername] = useState<string | null>(null);
   const [username, setUsername] = useState<string>('');
   const [repositories, setRepositories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(false);
   const [users, setUsers] = useState<any[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [endCursor, setEndCursor] = useState<string | null>(null);
-  const [languageFilter, setLanguageFilter] = useState<string>('');
+  const [languageFilter, setLanguageFilter] = useState<string[]>([]);
   const [nameFilter, setNameFilter] = useState<string>('');
-  const [languages, setLanguages] = useState<string[]>([]);
+  const [count, setCount] = useState(0);
 
   const [fetchRepositories, { data, loading: repoLoading, error }] = useLazyQuery(GET_USER_REPOSITORIES, {
     onCompleted: (data) => {
-      const edges = data?.user?.repositories?.edges || [];
-      setRepositories(edges);
+      setRepositories(data?.user?.repositories?.edges || []);
       setEndCursor(data?.user?.repositories?.pageInfo?.endCursor || null);
-      setLoading(false);
-
-      // Populate unique programming languages
-      const langs = edges
-        .map((edge: any) => edge.node.primaryLanguage?.name)
-        .filter((lang: string | null) => lang);
-      setLanguages(Array.from(new Set(langs)));
+      setCount(data?.user?.repositories?.totalCount || 0);
     },
   });
 
@@ -44,7 +45,7 @@ const RepositorySearch = () => {
     onCompleted: (data) => {
       setRepositories(data.search.edges);
       setEndCursor(data.search.pageInfo.endCursor);
-      setLoading(false);
+      setCount(data.search.totalCount);
     },
   });
 
@@ -56,7 +57,6 @@ const RepositorySearch = () => {
     setSelectedUsername(username);
     setPage(0);
     setRepositories([]);
-    setLoading(true);
     fetchRepositories({ variables: { username, first: rowsPerPage, after: null } });
   };
 
@@ -82,25 +82,26 @@ const RepositorySearch = () => {
     fetchRepositories({ variables: { username: selectedUsername, first: newRowsPerPage, after: null } });
   };
 
-  const handleFilterChange = () => {
+  const updateTableData = (name?: string, languages?: string[]) => {
     if (!selectedUsername) return;
-    setLoading(true);
+    if (languages?.length === 0 && !name) {
+      fetchRepositories({ variables: { username: selectedUsername, first: rowsPerPage, after: null } });
+    } else {
+      fetchFilteredRepositories({ variables: { query: buildSearchQuery(selectedUsername, name, languages), first: 10, after: null } });
+    }
+  }
 
-    const query = buildSearchQuery(
-      selectedUsername,
-      nameFilter || undefined,
-      languageFilter || undefined
-    );
-
-    fetchFilteredRepositories({
-      variables: {
-        query,
-        first: 10,
-        after: null,
-      },
-    });
+  const handleNameFilterChange = (name: string) => {
+    setNameFilter(name);
+    debouncedUpdateTableData(name, languageFilter);
   };
 
+  const handleLanguageFilterChange = (languages: string[]) => {
+    setLanguageFilter(languages);
+    debouncedUpdateTableData(nameFilter, languages);
+  };
+
+  const debouncedUpdateTableData = useDebounce(updateTableData, 300);
 
   return (
     <Container>
@@ -122,27 +123,15 @@ const RepositorySearch = () => {
               variant="outlined"
               fullWidth
               value={nameFilter}
-              onChange={(e) => setNameFilter(e.target.value)}
+              onChange={(e) => handleNameFilterChange(e.target.value)}
             />
-            <TextField
-              select
-              label="Filter by Programming Language"
-              variant="outlined"
-              fullWidth
-              value={languageFilter}
-              onChange={(e) => setLanguageFilter(e.target.value)}
-            >
-              <MenuItem value="">All Languages</MenuItem>
-              {languages.map((lang) => (
-                <MenuItem key={lang} value={lang}>
-                  {lang}
-                </MenuItem>
-              ))}
-            </TextField>
-            <GithubButton onClick={handleFilterChange}>Apply Filters</GithubButton>
+            <GithubLanguageFilter
+              onChange={handleLanguageFilterChange}
+              selectedLanguages={languageFilter}
+            />
           </>
         )}
-        {loading ? (
+        {repoLoading || filteredLoading ? (
           <Box display="flex" justifyContent="center">
             <CircularProgress />
           </Box>
@@ -151,8 +140,8 @@ const RepositorySearch = () => {
         ) : (
               <RepositoryTable
                 repositories={repositories}
-                loading={repoLoading}
-                totalCount={data?.user?.repositories?.totalCount || 0}
+                loading={repoLoading || filteredLoading}
+                totalCount={count}
                 page={page}
                 rowsPerPage={rowsPerPage}
                 handleChangePage={handleChangePage}
