@@ -1,13 +1,13 @@
 import { Stack, Typography, Autocomplete, TextField } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
 import { FormattedMessage, useIntl } from "react-intl";
 import { ReactComponent as GithubIcon } from "../../assets/Github.svg";
+import { useLazyQuery } from "@apollo/client";
+import { GET_USERNAMES } from "../../graphql/queries";
+import useDebounce from "../../hooks/useDebounce";
 
 export type GithubSearchProps = {
   handleUsernameSelect: (username: string) => void;
-  handleInputChange: (event: React.ChangeEvent<{}>, value: string) => void;
-  users: any[];
-  usersLoading: boolean;
   selectedUsername: string | null;
 };
 
@@ -25,12 +25,36 @@ const SearchWrapperStyle = {
   gap: 2,
 };
 
-const GithubSearch: React.FC<GithubSearchProps> = ({ handleUsernameSelect, handleInputChange, users, usersLoading, selectedUsername }) => {
+const GithubSearch: React.FC<GithubSearchProps> = ({ handleUsernameSelect, selectedUsername }) => {
   const intl = useIntl();
   const iconSize = selectedUsername ? 30 : 98;
+  const [users, setUsers] = useState<any[]>([]);
+  const [userError, setUserError] = useState<string | null>(null);
+
+
+  const [fetchUsers, { loading: usersLoading }] = useLazyQuery(GET_USERNAMES, {
+    onCompleted: (data) => {
+      setUsers(data.search.nodes);
+      setUserError(null);
+    },
+    onError: (error) => {
+      setUserError(error.message);
+    },
+  });
+
+  const handleInputChange = (_event: any, value: string) => {
+    if (value.length > 2) {
+      fetchUsers({ variables: { query: value } });
+    } else {
+      setUsers([]);
+    }
+  };
+
+  const debouncedHandleInputChange = useDebounce(handleInputChange, 500);
+
   return (
     <Stack sx={selectedUsername ? SearchWrapperStyle : SearchWrapperInitialStyle} spacing={selectedUsername ?? 4}>
-      <Stack direction="row" alignItems="center" spacing={2}>
+      <Stack direction="row" alignItems="center" spacing={2} onClick={() => window.location.href = '/'} sx={{ cursor: 'pointer' }}>
         <GithubIcon width={iconSize} height={iconSize} />
         <Typography variant={!selectedUsername ? "h2" : "h6"} fontFamily="monospace" fontWeight="bold">
           <FormattedMessage id="main.title" />
@@ -38,15 +62,21 @@ const GithubSearch: React.FC<GithubSearchProps> = ({ handleUsernameSelect, handl
       </Stack>
       <Autocomplete
         fullWidth
-        freeSolo
         options={users}
         getOptionLabel={(option: any) => option.login}
-        onInputChange={handleInputChange}
-        onChange={(event, newValue) => handleUsernameSelect(newValue?.login || '')}
+        onInputChange={debouncedHandleInputChange}
+        onChange={(_event, newValue) =>
+          handleUsernameSelect(newValue?.login || '')
+        }
         loading={usersLoading}
         renderInput={(params) => <TextField {...params} label={intl.formatMessage({ id: 'githubcatalog.searchForUsername', defaultMessage: 'Search for Username' })} />}
         disableClearable
       />
+      {userError && (
+        <Typography color="error" sx={{ textAlign: 'center', mb: 2 }}>
+          {userError}
+        </Typography>
+      )}
     </Stack>
   )
 };

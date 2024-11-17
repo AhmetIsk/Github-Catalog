@@ -10,8 +10,9 @@
   "githubcatalog.repositoryPrimaryLanguage": "Primäre Programmiersprache",
   "githubcatalog.repositoryIsFork": "Ist Fork",
   "githubcatalog.repositoryLoading": "Lade...",
+  "githubcatalog.repositoryUrl": "URL",
+  "githubcatalog.noRepositories": "Keine Repositories gefunden mit den angegebenen Filtern",
   "app.description": "Suchen und filtern Sie Repositories nach Benutzername und Sprache.",
   "filter.language": "Nach Programmiersprache filtern",
-  "table.noData": "Keine Repositories gefunden.",
   "table.loading": "Repositories werden geladen..."
 }

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Typography, CircularProgress, TextField, Box, Stack, FormControlLabel } from '@mui/material';
+import { TextField, Box, Stack, FormControlLabel, Typography, Chip, Link } from '@mui/material';
 import { useLazyQuery } from '@apollo/client';
 import { GET_REPOSITORIES_FILTERED, GET_USER_REPOSITORIES, GET_USERNAMES } from '../graphql/queries';
 import RepositoryTable from './RepositoryTable';
@@ -9,26 +9,14 @@ import { buildSearchQuery } from '../utils/shared';
 import GithubSearch from '../stories/GithubSearch/GithubSearch';
 import GithubSwitch from '../stories/GithubSwitch/GithubSwitch';
 import { useIntl } from 'react-intl';
-
-const searchHeaderInitialStyle = {
-  height: '100vh',
-  display: 'flex',
-  justifyContent: 'flex-start',
-  alignItems: 'center',
-  flexDirection: 'column',
-};
-
-const searchHeaderStyle = {
-  ...searchHeaderInitialStyle,
-  justifyContent: 'flex-start',
-  alignItems: 'stretch',
-};
+import { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
+import OpenInNewIcon from '@mui/icons-material/OpenInNew';
+import { LANGUAGE_COLORS } from '../utils/constants';
 
 const RepositorySearch = () => {
+  const intl = useIntl();
   const [selectedUsername, setSelectedUsername] = useState<string | null>(null);
-  const [username, setUsername] = useState<string>('');
   const [repositories, setRepositories] = useState<any[]>([]);
-  const [users, setUsers] = useState<any[]>([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [endCursor, setEndCursor] = useState<string | null>(null);
@@ -36,14 +24,19 @@ const RepositorySearch = () => {
   const [nameFilter, setNameFilter] = useState<string>('');
   const [count, setCount] = useState(0);
   const [includeForks, setIncludeForks] = useState(false);
-  const intl = useIntl();
-  const [cursors, setCursors] = useState<string[]>([]); // Keep track of cursors
+  const [cursors, setCursors] = useState<string[]>([]);
+  const [repoError, setRepoError] = useState<string | null>(null);
 
-  const [fetchRepositories, { data, loading: repoLoading, error }] = useLazyQuery(GET_USER_REPOSITORIES, {
+
+  const [fetchRepositories, { loading: repoLoading }] = useLazyQuery(GET_USER_REPOSITORIES, {
     onCompleted: (data) => {
       setRepositories(data?.user?.repositories?.edges || []);
       setEndCursor(data?.user?.repositories?.pageInfo?.endCursor || null);
       setCount(data?.user?.repositories?.totalCount || 0);
+      setRepoError(null);
+    },
+    onError: (error) => {
+      setRepoError(error.message);
     },
   });
 
@@ -52,11 +45,11 @@ const RepositorySearch = () => {
       setRepositories(data.search.edges);
       setEndCursor(data.search.pageInfo.endCursor);
       setCount(data.search.repositoryCount);
+      setRepoError(null);
     },
-  });
-
-  const [fetchUsers, { loading: usersLoading }] = useLazyQuery(GET_USERNAMES, {
-    onCompleted: (data) => setUsers(data.search.nodes),
+    onError: (error) => {
+      setRepoError(error.message);
+    },
   });
 
   const handleUsernameSelect = (username: string) => {
@@ -74,7 +67,7 @@ const RepositorySearch = () => {
     }
   };
 
-  const handleChangePage = (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => {
+  const handleChangePage = (newPage: number) => {
     if (!selectedUsername) return;
 
     let cursor = null;
@@ -100,28 +93,19 @@ const RepositorySearch = () => {
     }
   };
 
-  const handleInputChange = (event: any, value: string) => {
-    setUsername(value);
-    if (value.length > 2) {
-      fetchUsers({ variables: { query: value } });
-    } else {
-      setUsers([]);
-    }
-  };
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const newRowsPerPage = parseInt(event.target.value, 10);
-    setRowsPerPage(newRowsPerPage);
-    setPage(0); // Reset page
-    setCursors([]); // Reset cursors
-    setEndCursor(null); // Reset cursor
+  const handleRowsPerPageChange = (rowsPerPage: number) => {
+    setRowsPerPage(rowsPerPage);
+    setPage(0);
+    setCursors([]);
+    setEndCursor(null);
 
     if (!selectedUsername) return;
 
     if (includeForks) {
-      fetchRepositories({ variables: { username: selectedUsername, first: newRowsPerPage, after: null } });
+      fetchRepositories({ variables: { username: selectedUsername, first: rowsPerPage, after: null } });
     } else {
-      fetchFilteredRepositories({ variables: { query: buildSearchQuery(selectedUsername, nameFilter, languageFilter), first: newRowsPerPage, after: null } });
+      fetchFilteredRepositories({ variables: { query: buildSearchQuery(selectedUsername, nameFilter, languageFilter), first: rowsPerPage, after: null } });
     }
   };
 
@@ -129,8 +113,8 @@ const RepositorySearch = () => {
     if (!selectedUsername) return;
 
     setPage(0);
-    setEndCursor(null); // Reset pagination cursor
-    setCursors([]); // Reset cursors
+    setEndCursor(null);
+    setCursors([]);
 
     if (includeForks) {
       fetchRepositories({ variables: { username: selectedUsername, first: rowsPerPage, after: null } });
@@ -149,7 +133,7 @@ const RepositorySearch = () => {
     debouncedUpdateTableData(nameFilter, languages);
   };
 
-  const debouncedUpdateTableData = useDebounce(updateTableData, 300);
+  const debouncedUpdateTableData = useDebounce(updateTableData, 500);
 
   const handleIncludeForksChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setIncludeForks(event.target.checked);
@@ -158,13 +142,102 @@ const RepositorySearch = () => {
     debouncedUpdateTableData('', [], event.target.checked);
   };
 
+  const columns: GridColDef[] = [
+    {
+      field: 'name',
+      headerName: intl.formatMessage({
+        id: 'githubcatalog.repositoryName',
+        defaultMessage: 'Name',
+      }),
+      flex: 1,
+      sortable: true,
+    },
+    {
+      field: 'description',
+      headerName: intl.formatMessage({
+        id: 'githubcatalog.repositoryDescription',
+        defaultMessage: 'Description',
+      }),
+      flex: 3,
+      renderCell: (params: GridRenderCellParams) =>
+        params.value || intl.formatMessage({
+          id: 'githubcatalog.noDescription',
+          defaultMessage: 'No description available',
+        }),
+    },
+    {
+      field: 'primaryLanguage',
+      headerName: intl.formatMessage({
+        id: 'githubcatalog.repositoryPrimaryLanguage',
+        defaultMessage: 'Primary Language',
+      }),
+      flex: 1,
+      renderCell: (params: GridRenderCellParams) =>
+        params.value ? (
+          <Chip
+            label={params.value}
+            style={{
+              backgroundColor:
+                LANGUAGE_COLORS[params.value as string] || '#ccc',
+              color: 'white',
+            }}
+          />
+        ) : (
+          intl.formatMessage({
+            id: 'githubcatalog.noLanguage',
+            defaultMessage: 'N/A',
+          })
+        ),
+    },
+    {
+      field: 'url',
+      headerName: intl.formatMessage({
+        id: 'githubcatalog.repositoryUrl',
+        defaultMessage: 'URL',
+      }),
+      renderCell: (params: GridRenderCellParams) => (
+        <Link href={params.value} target="_blank" rel="noopener noreferrer">
+          <OpenInNewIcon />
+        </Link>
+      ),
+    },
+    ...(includeForks
+      ? [
+        {
+          field: 'isFork',
+          headerName: intl.formatMessage({
+            id: 'githubcatalog.repositoryIsFork',
+            defaultMessage: 'Is Fork',
+          }),
+          flex: 0.5,
+          renderCell: (params: GridRenderCellParams) =>
+            params.value
+              ? intl.formatMessage({
+                id: 'githubcatalog.yes',
+                defaultMessage: 'Yes',
+              })
+              : intl.formatMessage({
+                id: 'githubcatalog.no',
+                defaultMessage: 'No',
+              }),
+        },
+      ]
+      : []),
+  ];
+
+  const rows = repositories.map((repo, index) => ({
+    id: index, // DataGrid requires a unique id for each row
+    name: repo.node.name,
+    description: repo.node.description,
+    primaryLanguage: repo.node.primaryLanguage?.name,
+    isFork: repo.node.isFork,
+    url: repo.node.url
+  }));
+
   return (
-    <Box sx={!selectedUsername ? searchHeaderInitialStyle : searchHeaderStyle}>
+    <Box>
       <GithubSearch
         handleUsernameSelect={handleUsernameSelect}
-        handleInputChange={handleInputChange}
-        users={users}
-        usersLoading={usersLoading}
         selectedUsername={selectedUsername}
       />
       {selectedUsername && (
@@ -187,25 +260,22 @@ const RepositorySearch = () => {
               sx={{ whiteSpace: 'nowrap' }}
             />
           </Stack>
-
-          {repoLoading || filteredLoading ? (
-            <Box display="flex" justifyContent="center">
-              <CircularProgress />
-            </Box>
-          ) : error ? (
-            <Typography color="error">{`Error: ${error.message}`}</Typography>
-            ) :
-              (
-                <RepositoryTable
-                  repositories={repositories}
-                  loading={repoLoading || filteredLoading}
-                  totalCount={count}
-                  page={page}
-                  rowsPerPage={rowsPerPage}
-                  handleChangePage={handleChangePage}
-                  handleChangeRowsPerPage={handleChangeRowsPerPage}
-                  includeForks={includeForks}
-                />
+          {repoError ? (
+            <Typography color="error" sx={{ textAlign: 'center', mb: 2 }}>
+              {repoError}
+            </Typography>
+          ) : (
+            <RepositoryTable
+              repositories={repositories}
+              loading={repoLoading || filteredLoading}
+              totalCount={count}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              handleChangePage={handleChangePage}
+              handleChangeRowsPerPage={handleRowsPerPageChange}
+              columns={columns}
+              rows={rows}
+            />
           )}
         </Stack>
       )}

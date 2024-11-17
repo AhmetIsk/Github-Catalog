@@ -12,6 +12,7 @@ export const GET_USER_REPOSITORIES = gql`
               name
             }
             isFork
+            url
           }
         }
         pageInfo {
@@ -52,6 +53,7 @@ export const GET_REPOSITORIES_FILTERED = gql`
             primaryLanguage {
               name
             }
+            url
           }
         }
       }

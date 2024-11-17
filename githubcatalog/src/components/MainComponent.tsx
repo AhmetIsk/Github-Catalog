@@ -33,9 +33,7 @@ const MainComponent: React.FC<MainComponentProps> = ({ onLocaleChange, currentLo
           DE
         </Button>
       </Box>
-
-      {/* Page Content */}
-      <Stack spacing={2} flex={1}>
+      <Stack flex={1}>
         <RepositorySearch />
       </Stack>
     </Box>
