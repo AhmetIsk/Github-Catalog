@@ -226,7 +226,7 @@ const RepositorySearch = () => {
   ];
 
   const rows = repositories.map((repo, index) => ({
-    id: index, // DataGrid requires a unique id for each row
+    id: index,
     name: repo.node.name,
     description: repo.node.description,
     primaryLanguage: repo.node.primaryLanguage?.name,
