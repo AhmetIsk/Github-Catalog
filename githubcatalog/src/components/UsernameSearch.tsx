@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { Autocomplete, TextField } from '@mui/material';
 import { useLazyQuery } from '@apollo/client';
 import { GET_USERNAMES } from '../graphql/queries';
+import { useIntl } from 'react-intl';
 
 const UsernameSearch = () => {
   const [username, setUsername] = useState('');
   const [users, setUsers] = useState<any[]>([]);
+  const intl = useIntl();
 
   // Lazy query for getting usernames based on input
   const [fetchUsers, { data, loading, error }] = useLazyQuery(GET_USERNAMES, {
@@ -34,7 +36,7 @@ const UsernameSearch = () => {
         getOptionLabel={(option: any) => option.login}
         onInputChange={handleInputChange}
         onChange={(event, newValue) => setUsername(newValue?.login || '')}
-        renderInput={(params) => <TextField {...params} label="Search for Username" />}
+        renderInput={(params) => <TextField {...params} label={intl.formatMessage({ id: 'githubcatalog.searchUsername', defaultMessage: 'Search for Username' })} />}
         loading={loading}
         disableClearable
         renderOption={(props, option) => (

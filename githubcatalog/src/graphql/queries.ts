@@ -11,6 +11,7 @@ export const GET_USER_REPOSITORIES = gql`
             primaryLanguage {
               name
             }
+            isFork
           }
         }
         pageInfo {

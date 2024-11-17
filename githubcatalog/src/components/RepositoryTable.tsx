@@ -1,5 +1,6 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Paper, Typography } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Paper, Typography, Chip } from '@mui/material';
+import { LANGUAGE_COLORS } from '../utils/constants';
 
 interface RepositoryTableProps {
   repositories: any[];
@@ -9,6 +10,7 @@ interface RepositoryTableProps {
   rowsPerPage: number;
   handleChangePage: (event: React.MouseEvent<HTMLButtonElement> | null, newPage: number) => void;
   handleChangeRowsPerPage: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+  includeForks: boolean;
 }
 
 const RepositoryTable: React.FC<RepositoryTableProps> = ({
@@ -19,6 +21,7 @@ const RepositoryTable: React.FC<RepositoryTableProps> = ({
   rowsPerPage,
   handleChangePage,
   handleChangeRowsPerPage,
+  includeForks,
 }) => (
   <>
     {repositories.length === 0 && !loading && (
@@ -34,12 +37,13 @@ const RepositoryTable: React.FC<RepositoryTableProps> = ({
             <TableCell>Name</TableCell>
             <TableCell>Description</TableCell>
             <TableCell>Primary Language</TableCell>
+            {includeForks && <TableCell>Is Fork</TableCell>}
           </TableRow>
         </TableHead>
         <TableBody>
           {loading ? (
             <TableRow>
-              <TableCell colSpan={3} align="center">
+              <TableCell colSpan={includeForks ? 4 : 3} align="center">
                 Loading...
               </TableCell>
             </TableRow>
@@ -48,7 +52,19 @@ const RepositoryTable: React.FC<RepositoryTableProps> = ({
               <TableRow key={index}>
                 <TableCell>{repo.node.name}</TableCell>
                 <TableCell>{repo.node.description || 'No description available'}</TableCell>
-                <TableCell>{repo.node.primaryLanguage?.name || 'N/A'}</TableCell>
+                <TableCell>                  {repo.node.primaryLanguage ? (
+                  <Chip
+                    label={repo.node.primaryLanguage.name}
+                    style={{
+                      backgroundColor: LANGUAGE_COLORS[repo.node.primaryLanguage.name] || 'defaultColor',
+                      color: 'white',
+                    }}
+                  />
+                ) : (
+                  'N/A'
+                )}
+                </TableCell>
+                {includeForks && <TableCell>{repo.node.isFork ? 'Yes' : 'No'}</TableCell>}
               </TableRow>
             ))
           )}

@@ -1,0 +1,12 @@
+{
+  "main.title": "GitHubExplorer",
+  "githubcatalog.repositoryNameFilter": "Filter by Repository Name",
+  "githubcatalog.includeForks": "Include forks",
+  "githubcatalog.searchUsername": "Search Username",
+  "githubcatalog.languageFilter": "Select Languages",
+  "githubcatalog.selectedLanguages": "Selected Languages: ",
+  "app.description": "Search and filter repositories by username and language.",
+  "filter.language": "Filter by Programming Language",
+  "table.noData": "No repositories found.",
+  "table.loading": "Loading repositories..."
+}

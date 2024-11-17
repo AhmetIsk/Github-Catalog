@@ -1,38 +1,39 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Autocomplete, TextField, Chip, Box, Typography, Stack, ListItem } from '@mui/material';
-import { FormattedMessage } from 'react-intl';
+import { useIntl } from 'react-intl';
+import { LANGUAGES } from '../../utils/constants';
 
 interface GithubLanguageFilterProps {
   onChange: (languages: string[]) => void;
+  disabled?: boolean;
 }
 
-const languages = [
-  'JavaScript', 'TypeScript', 'Python', 'Java', 'C#', 'C++', 'Ruby', 'Go', 'Swift', 'Kotlin',
-  'PHP', 'HTML', 'CSS', 'Shell', 'Objective-C', 'Scala', 'Rust', 'Dart', 'Perl', 'Haskell',
-  'Lua', 'R', 'Elixir', 'Clojure', 'Erlang', 'Groovy', 'VimL', 'CoffeeScript', 'F#', 'PowerShell',
-  'Visual Basic', 'Matlab', 'Assembly', 'Fortran', 'COBOL', 'Pascal', 'Ada', 'Prolog', 'Lisp',
-  'Scheme', 'Julia', 'Crystal', 'Nim', 'OCaml', 'Racket', 'Smalltalk', 'Tcl', 'ActionScript',
-  'ColdFusion', 'D', 'Forth', 'Hack', 'J', 'Kotlin', 'LiveScript', 'Nix', 'PureScript', 'QML',
-  'Reason', 'Solidity', 'VHDL', 'Verilog', 'Zig'
-];
-
 const GithubLanguageFilter: React.FC<GithubLanguageFilterProps> = ({
-  onChange
+  onChange,
+  disabled = false,
 }) => {
   const [selectedLanguages, setSelectedLanguages] = useState<string[]>([]);
   const handleLanguagesChange = (event: any, newValue: string[]) => {
     setSelectedLanguages(newValue);
     onChange(newValue);
   };
+  const intl = useIntl();
+
+  useEffect(() => {
+    if (disabled) {
+      setSelectedLanguages([]);
+    }
+  }, [disabled]);
 
   return (
-    <div>
+    <Stack width="100%">
       <Autocomplete
         multiple
-        options={languages}
+        options={LANGUAGES}
         value={selectedLanguages}
         onChange={handleLanguagesChange}
-        renderInput={(params) => <TextField {...params} label="Select Languages" />}
+        disabled={disabled}
+        renderInput={(params) => <TextField {...params} label={intl.formatMessage({ id: 'githubcatalog.languageFilter', defaultMessage: 'Select Languages' })} />}
         renderOption={(props, option) => (
           <ListItem {...props} key={option}>
             {option}
@@ -40,13 +41,13 @@ const GithubLanguageFilter: React.FC<GithubLanguageFilterProps> = ({
         )}
       />
 
-      {selectedLanguages.length > 0 && (
-        <Stack sx={{ marginBlock: 2 }}>
-          <FormattedMessage id="githubcatalog.languageFilter" defaultMessage="Selected Languages: " />
+      {selectedLanguages.length > 0 && !disabled && (
+        <Stack sx={{ marginBlock: 1 }} fontSize="0.8rem">
+          {intl.formatMessage({ id: 'githubcatalog.selectedLanguages', defaultMessage: 'Selected Languages: ' })}
           {selectedLanguages.join(', ')}
         </Stack>
       )}
-    </div>
+    </Stack>
   );
 };
 
