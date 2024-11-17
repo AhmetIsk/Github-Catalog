@@ -1,6 +1,6 @@
 import { Stack, Typography, Autocomplete, TextField } from "@mui/material";
 import React from "react";
-import { FormattedMessage } from "react-intl";
+import { FormattedMessage, useIntl } from "react-intl";
 import { ReactComponent as GithubIcon } from "../../assets/Github.svg";
 
 export type GithubSearchProps = {
@@ -26,6 +26,7 @@ const SearchWrapperStyle = {
 };
 
 const GithubSearch: React.FC<GithubSearchProps> = ({ handleUsernameSelect, handleInputChange, users, usersLoading, selectedUsername }) => {
+  const intl = useIntl();
   const iconSize = selectedUsername ? 30 : 98;
   return (
     <Stack sx={selectedUsername ? SearchWrapperStyle : SearchWrapperInitialStyle} spacing={selectedUsername ?? 4}>
@@ -43,7 +44,7 @@ const GithubSearch: React.FC<GithubSearchProps> = ({ handleUsernameSelect, handl
         onInputChange={handleInputChange}
         onChange={(event, newValue) => handleUsernameSelect(newValue?.login || '')}
         loading={usersLoading}
-        renderInput={(params) => <TextField {...params} label="Search for Username" />}
+        renderInput={(params) => <TextField {...params} label={intl.formatMessage({ id: 'githubcatalog.searchForUsername', defaultMessage: 'Search for Username' })} />}
         disableClearable
       />
     </Stack>

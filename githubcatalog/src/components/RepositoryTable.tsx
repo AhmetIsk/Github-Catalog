@@ -1,7 +1,7 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination, Paper, Typography, Chip } from '@mui/material';
 import { LANGUAGE_COLORS } from '../utils/constants';
-
+import { useIntl } from 'react-intl';
 interface RepositoryTableProps {
   repositories: any[];
   loading: boolean;
@@ -22,9 +22,11 @@ const RepositoryTable: React.FC<RepositoryTableProps> = ({
   handleChangePage,
   handleChangeRowsPerPage,
   includeForks,
-}) => (
-  <>
-    {repositories.length === 0 && !loading && (
+}) => {
+  const intl = useIntl();
+  return (
+    <>
+      {repositories.length === 0 && !loading && (
       <Typography variant="h6" color="textSecondary">
         No repositories found
       </Typography>
@@ -34,17 +36,17 @@ const RepositoryTable: React.FC<RepositoryTableProps> = ({
       <Table aria-label="repositories table">
         <TableHead>
           <TableRow>
-            <TableCell>Name</TableCell>
-            <TableCell>Description</TableCell>
-            <TableCell>Primary Language</TableCell>
-            {includeForks && <TableCell>Is Fork</TableCell>}
+              <TableCell>{intl.formatMessage({ id: 'githubcatalog.repositoryName', defaultMessage: 'Name' })}</TableCell>
+              <TableCell>{intl.formatMessage({ id: 'githubcatalog.repositoryDescription', defaultMessage: 'Description' })}</TableCell>
+              <TableCell>{intl.formatMessage({ id: 'githubcatalog.repositoryPrimaryLanguage', defaultMessage: 'Primary Language' })}</TableCell>
+              {includeForks && <TableCell>{intl.formatMessage({ id: 'githubcatalog.repositoryIsFork', defaultMessage: 'Is Fork' })}</TableCell>}
           </TableRow>
         </TableHead>
         <TableBody>
           {loading ? (
             <TableRow>
               <TableCell colSpan={includeForks ? 4 : 3} align="center">
-                Loading...
+                  {intl.formatMessage({ id: 'githubcatalog.repositoryLoading', defaultMessage: 'Loading...' })}
               </TableCell>
             </TableRow>
           ) : (
@@ -69,19 +71,20 @@ const RepositoryTable: React.FC<RepositoryTableProps> = ({
             ))
           )}
         </TableBody>
-      </Table>
-    </TableContainer>
+        </Table>
+      </TableContainer>
 
-    <TablePagination
-      rowsPerPageOptions={[10, 25, 50]}
-      component="div"
-      count={totalCount}
-      rowsPerPage={rowsPerPage}
-      page={page}
-      onPageChange={handleChangePage}
-      onRowsPerPageChange={handleChangeRowsPerPage}
-    />
-  </>
-);
+      <TablePagination
+        rowsPerPageOptions={[10, 25, 50]}
+        component="div"
+        count={totalCount}
+        rowsPerPage={rowsPerPage}
+        page={page}
+        onPageChange={handleChangePage}
+        onRowsPerPageChange={handleChangeRowsPerPage}
+      />
+    </>
+  );
+};
 
 export default RepositoryTable;
