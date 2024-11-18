@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Autocomplete, TextField, Chip, Box, Typography, Stack, ListItem } from '@mui/material';
+import { Autocomplete, TextField, Stack, ListItem } from '@mui/material';
 import { useIntl } from 'react-intl';
 import { LANGUAGES } from '../../utils/constants';
 
@@ -33,7 +33,7 @@ const GithubLanguageFilter: React.FC<GithubLanguageFilterProps> = ({
         value={selectedLanguages}
         onChange={handleLanguagesChange}
         disabled={disabled}
-        renderInput={(params) => <TextField {...params} label={intl.formatMessage({ id: 'githubcatalog.languageFilter', defaultMessage: 'Select Languages' })} />}
+        renderInput={(params) => <TextField {...params} name="searchByProgrammingLanguage" label={intl.formatMessage({ id: 'githubcatalog.languageFilter', defaultMessage: 'Select Languages' })} />}
         renderOption={(props, option) => (
           <ListItem {...props} key={option}>
             {option}

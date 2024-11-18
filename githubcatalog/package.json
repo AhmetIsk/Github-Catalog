@@ -12,7 +12,6 @@
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "@types/jest": "^27.5.2",
     "@types/node": "^16.18.119",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
@@ -21,7 +20,6 @@
     "react-dom": "^18.3.1",
     "react-intl": "^6.8.7",
     "react-scripts": "5.0.1",
-    "typescript": "^4.9.5",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
@@ -39,6 +37,30 @@
       "plugin:storybook/recommended"
     ]
   },
+  "overrides": {
+    "react-refresh": "0.11.0"
+  },
+  "devDependencies": {
+    "@chromatic-com/storybook": "^3.2.2",
+    "@cucumber/cucumber": "^11.1.0",
+    "@cucumber/pretty-formatter": "^1.0.1",
+    "@playwright/test": "^1.48.2",
+    "@storybook/addon-essentials": "^8.4.3",
+    "@storybook/addon-interactions": "^8.4.3",
+    "@storybook/addon-onboarding": "^8.4.3",
+    "@storybook/blocks": "^8.4.3",
+    "@storybook/preset-create-react-app": "^8.4.3",
+    "@storybook/react": "^8.4.3",
+    "@storybook/react-webpack5": "^8.4.3",
+    "@storybook/test": "^8.4.3",
+    "eslint-plugin-storybook": "^0.11.0",
+    "playwright": "^1.48.2",
+    "prop-types": "^15.8.1",
+    "storybook": "^8.4.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^4.9.5",
+    "webpack": "^5.96.1"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
@@ -50,20 +72,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "@chromatic-com/storybook": "^3.2.2",
-    "@storybook/addon-essentials": "^8.4.3",
-    "@storybook/addon-interactions": "^8.4.3",
-    "@storybook/addon-onboarding": "^8.4.3",
-    "@storybook/blocks": "^8.4.3",
-    "@storybook/preset-create-react-app": "^8.4.3",
-    "@storybook/react": "^8.4.3",
-    "@storybook/react-webpack5": "^8.4.3",
-    "@storybook/test": "^8.4.3",
-    "eslint-plugin-storybook": "^0.11.0",
-    "prop-types": "^15.8.1",
-    "storybook": "^8.4.3",
-    "webpack": "^5.96.1"
   }
 }

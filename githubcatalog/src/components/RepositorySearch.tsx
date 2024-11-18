@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TextField, Box, Stack, FormControlLabel, Typography, Chip, Link } from '@mui/material';
 import { useLazyQuery } from '@apollo/client';
-import { GET_REPOSITORIES_FILTERED, GET_USER_REPOSITORIES, GET_USERNAMES } from '../graphql/queries';
+import { GET_REPOSITORIES_FILTERED, GET_USER_REPOSITORIES } from '../graphql/queries';
 import RepositoryTable from './RepositoryTable';
 import GithubLanguageFilter from '../stories/GithubLanguageFilter/GithubLanguageFilter';
 import useDebounce from '../hooks/useDebounce';
@@ -246,6 +246,7 @@ const RepositorySearch = () => {
             <TextField
               label={intl.formatMessage({ id: 'githubcatalog.repositoryNameFilter', defaultMessage: 'Filter by Repository Name' })}
               fullWidth
+              name="searchByRepositoryName"
               value={nameFilter}
               onChange={(e) => handleNameFilterChange(e.target.value)}
               disabled={includeForks}

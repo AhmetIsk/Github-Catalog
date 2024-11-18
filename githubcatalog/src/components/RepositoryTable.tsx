@@ -51,6 +51,7 @@ const RepositoryTable: React.FC<RepositoryTableProps> = ({
         </Stack>
       ) : (
           <DataGrid
+            className="repository-table"
             rows={rows}
             columns={columns}
             pageSizeOptions={[10, 25, 50]}

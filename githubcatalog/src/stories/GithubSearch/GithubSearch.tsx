@@ -69,7 +69,7 @@ const GithubSearch: React.FC<GithubSearchProps> = ({ handleUsernameSelect, selec
           handleUsernameSelect(newValue?.login || '')
         }
         loading={usersLoading}
-        renderInput={(params) => <TextField {...params} label={intl.formatMessage({ id: 'githubcatalog.searchForUsername', defaultMessage: 'Search for Username' })} />}
+        renderInput={(params) => <TextField {...params} name="usernameSearch" label={intl.formatMessage({ id: 'githubcatalog.searchForUsername', defaultMessage: 'Search for Username' })} />}
         disableClearable
       />
       {userError && (
