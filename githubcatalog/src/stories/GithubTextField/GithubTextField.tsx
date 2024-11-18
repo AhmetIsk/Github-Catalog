@@ -11,7 +11,7 @@ const GithubTextField: React.FC<GithubTextFieldProps> = (props) => {
       variant="outlined"
       fullWidth
       margin="normal"
-      {...props} // Spread any props so the component remains flexible
+      {...props}
     />
   );
 };

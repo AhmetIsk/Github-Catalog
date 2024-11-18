@@ -2,10 +2,6 @@
 
 This is a GitHub catalog that enables users to search for GitHub users, and also search & filter their repositories.
 
-## Getting Started
-
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
-
 ### Prerequisites
 
 - Node.js and npm installed on your machine.

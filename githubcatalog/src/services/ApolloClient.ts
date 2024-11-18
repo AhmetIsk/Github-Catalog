@@ -6,6 +6,12 @@ const httpLink = new HttpLink({
   uri: GITHUB_GRAPHQL_API,
 });
 
+/**
+ * An ApolloLink that adds an authorization header to the request.
+ * @param operation - The Apollo operation.
+ * @param forward - The next link in the chain.
+ * @returns The modified operation.
+ */
 const authLink = new ApolloLink((operation, forward) => {
   // Use the token from .env
   const token = process.env.REACT_APP_GITHUB_TOKEN;
@@ -20,7 +26,9 @@ const authLink = new ApolloLink((operation, forward) => {
   return forward(operation);
 });
 
-// Initialize Apollo Client
+/**
+ * An ApolloClient instance that uses the authLink and httpLink.
+ */
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
   cache: new InMemoryCache(),

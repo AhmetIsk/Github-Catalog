@@ -27,7 +27,9 @@ const RepositorySearch = () => {
   const [cursors, setCursors] = useState<string[]>([]);
   const [repoError, setRepoError] = useState<string | null>(null);
 
-
+  /**
+   * A lazy query hook that fetches user repositories.
+   */
   const [fetchRepositories, { loading: repoLoading }] = useLazyQuery(GET_USER_REPOSITORIES, {
     onCompleted: (data) => {
       setRepositories(data?.user?.repositories?.edges || []);
@@ -40,6 +42,9 @@ const RepositorySearch = () => {
     },
   });
 
+  /**
+   * A lazy query hook that fetches filtered repositories.
+   */
   const [fetchFilteredRepositories, { loading: filteredLoading }] = useLazyQuery(GET_REPOSITORIES_FILTERED, {
     onCompleted: (data) => {
       setRepositories(data.search.edges);
@@ -52,6 +57,10 @@ const RepositorySearch = () => {
     },
   });
 
+  /**
+   * Handles the selection of a username.
+   * @param username - The username to select.
+   */
   const handleUsernameSelect = (username: string) => {
     setSelectedUsername(username);
     setPage(0); // Reset page
@@ -67,6 +76,10 @@ const RepositorySearch = () => {
     }
   };
 
+  /**
+   * Handles the change of the page.
+   * @param newPage - The new page number.
+   */
   const handleChangePage = (newPage: number) => {
     if (!selectedUsername) return;
 
@@ -94,6 +107,10 @@ const RepositorySearch = () => {
   };
 
 
+  /**
+   * Handles the change of the rows per page.
+   * @param rowsPerPage - The new rows per page.
+   */
   const handleRowsPerPageChange = (rowsPerPage: number) => {
     setRowsPerPage(rowsPerPage);
     setPage(0);
@@ -109,6 +126,12 @@ const RepositorySearch = () => {
     }
   };
 
+  /**
+   * Updates the table data.
+   * @param name - The name to filter by.
+   * @param languages - The languages to filter by.
+   * @param includeForks - Whether to include forks.
+   */
   const updateTableData = (name?: string, languages?: string[], includeForks?: boolean) => {
     if (!selectedUsername) return;
 
@@ -123,18 +146,33 @@ const RepositorySearch = () => {
     }
   };
 
+  /**
+   * Handles the change of the name filter.
+   * @param name - The new name filter.
+   */
   const handleNameFilterChange = (name: string) => {
     setNameFilter(name);
     debouncedUpdateTableData(name, languageFilter);
   };
 
+  /**
+   * Handles the change of the language filter.
+   * @param languages - The new language filter.
+   */
   const handleLanguageFilterChange = (languages: string[]) => {
     setLanguageFilter(languages);
     debouncedUpdateTableData(nameFilter, languages);
   };
 
+  /**
+   * A debounced function that updates the table data.
+   */
   const debouncedUpdateTableData = useDebounce(updateTableData, 500);
 
+  /**
+   * Handles the change of the include forks switch.
+   * @param event - The event that triggered the change.
+   */
   const handleIncludeForksChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setIncludeForks(event.target.checked);
     setNameFilter('');
