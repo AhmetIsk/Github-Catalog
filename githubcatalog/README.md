@@ -1,6 +1,15 @@
-# Getting Started with Create React App
+# Github-Catalog
+
+This is a GitHub catalog that enables users to search for GitHub users, and also search & filter their repositories.
+
+## Getting Started
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+### Prerequisites
+
+- Node.js and npm installed on your machine.
+- A GitHub personal access token for accessing the GitHub GraphQL API. Set this token in your environment variables as `REACT_APP_GITHUB_TOKEN`.
 
 ## Available Scripts
 
@@ -37,10 +46,25 @@ If you aren’t satisfied with the build tool and configuration choices, you can
 
 Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However, we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+
+### `npm run e2e-test`
+
+Runs the end-to-end tests using Cucumber.js. This script will execute the tests defined in the `tests/features` directory.
 
 ## Learn More
 
 You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
 
 To learn React, check out the [React documentation](https://reactjs.org/).
+
+## Features
+
+- Search for GitHub users.
+- Filter repositories by name and programming language.
+- Option to include or exclude forked repositories.
+- Multi-language support (English and German).
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
