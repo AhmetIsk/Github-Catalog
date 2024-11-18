@@ -266,17 +266,21 @@ const RepositorySearch = () => {
               {repoError}
             </Typography>
           ) : (
-            <RepositoryTable
-              repositories={repositories}
-              loading={repoLoading || filteredLoading}
-              totalCount={count}
-              page={page}
-              rowsPerPage={rowsPerPage}
-              handleChangePage={handleChangePage}
-              handleChangeRowsPerPage={handleRowsPerPageChange}
-              columns={columns}
-              rows={rows}
-            />
+              <RepositoryTable
+                tableHeader={intl.formatMessage({
+                  id: 'githubcatalog.repositoriesHeader',
+                  defaultMessage: '{username}s Repositor{plural}',
+                }, { username: selectedUsername, plural: rows.length > 1 ? 'ies' : 'y' })}
+                repositories={repositories}
+                loading={repoLoading || filteredLoading}
+                totalCount={count}
+                page={page}
+                rowsPerPage={rowsPerPage}
+                handleChangePage={handleChangePage}
+                handleChangeRowsPerPage={handleRowsPerPageChange}
+                columns={columns}
+                rows={rows}
+              />
           )}
         </Stack>
       )}

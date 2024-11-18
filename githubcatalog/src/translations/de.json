@@ -12,6 +12,7 @@
   "githubcatalog.repositoryLoading": "Lade...",
   "githubcatalog.repositoryUrl": "URL",
   "githubcatalog.noRepositories": "Keine Repositories gefunden mit den angegebenen Filtern",
+  "githubcatalog.repositoriesHeader": "{username} Repositor{plural}",
   "app.description": "Suchen und filtern Sie Repositories nach Benutzername und Sprache.",
   "filter.language": "Nach Programmiersprache filtern",
   "table.loading": "Repositories werden geladen..."

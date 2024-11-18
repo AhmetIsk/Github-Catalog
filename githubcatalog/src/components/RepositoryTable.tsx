@@ -17,6 +17,7 @@ interface RepositoryTableProps {
   handleChangeRowsPerPage: (rowsPerPage: number) => void;
   columns: GridColDef[];
   rows: any[];
+  tableHeader?: string;
 }
 
 const RepositoryTable: React.FC<RepositoryTableProps> = ({
@@ -29,6 +30,7 @@ const RepositoryTable: React.FC<RepositoryTableProps> = ({
   handleChangeRowsPerPage,
   columns,
   rows,
+  tableHeader,
 }) => {
   const intl = useIntl();
 
@@ -50,6 +52,10 @@ const RepositoryTable: React.FC<RepositoryTableProps> = ({
           </Typography>
         </Stack>
       ) : (
+          <>
+            {!loading && <Typography variant="h4" color="text.primary" textAlign="center" sx={{ mb: 2 }} fontFamily="monospace">
+              {tableHeader}
+            </Typography>}
           <DataGrid
             className="repository-table"
             rows={rows}
@@ -78,6 +84,7 @@ const RepositoryTable: React.FC<RepositoryTableProps> = ({
               },
             }}
           />
+          </>
       )}
     </Box>
   );
