@@ -2,7 +2,7 @@ import { styled } from '@mui/material/styles';
 import Switch, { SwitchProps } from '@mui/material/Switch';
 
 const GithubSwitch = styled((props: SwitchProps) => (
-  <Switch focusVisibleClassName=".Mui-focusVisible" disableRipple {...props} />
+  <Switch focusVisibleClassName=".Mui-focusVisible" aria-label="Include forks" disableRipple {...props} />
 ))(({ theme }) => ({
   width: 42,
   height: 26,

@@ -16,3 +16,6 @@ Feature: Repository Search
     When the user removes search filter
     And the user filters repositories by "JavaScript" programming language
     Then the repository table should contain only "JavaScript" programming language
+
+    When the user presses "Include forks" switch button
+    Then the "Is Fork" column is shown in repository table

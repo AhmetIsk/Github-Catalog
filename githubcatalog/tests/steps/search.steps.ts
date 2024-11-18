@@ -105,3 +105,11 @@ Then('the repository table should contain only {string} programming language', a
     expect(languageText).toBe(query);
   }
 });
+
+When('the user presses {string} switch button', async (query: string) => {
+  await page.click(`.MuiSwitch-switchBase[aria-label="${query}"]`);
+});
+
+Then('the {string} column is shown in repository table', async (query: string) => {
+  await page.waitForSelector('.repository-table [data-field="isFork"]', { state: 'visible' });
+});
